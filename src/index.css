@@ -1,0 +1,231 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Any global styles that can't be handled by Tailwind */
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+}
+
+/* Base styles */
+body {
+  @apply text-gray-900 bg-gray-50;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Custom component styles */
+.app-container {
+  @apply flex h-screen w-screen overflow-hidden;
+}
+
+.document-navigator {
+  @apply w-64 border-r border-gray-200 overflow-y-auto p-4 bg-white;
+}
+
+.document-list {
+  @apply mt-4;
+}
+
+.document-list h2 {
+  @apply text-lg font-semibold mb-2;
+}
+
+.document-list ul {
+  @apply space-y-1;
+}
+
+.document-item {
+  @apply flex justify-between items-center py-2 px-3 rounded cursor-grab relative border border-transparent;
+}
+
+.document-item:active {
+  @apply cursor-grabbing;
+}
+
+.document-item.active {
+  @apply bg-blue-50 border-l-4 border-blue-500;
+}
+
+.document-item.hovered {
+  @apply bg-gray-50;
+}
+
+.document-item.dragging {
+  @apply opacity-50 scale-105 shadow-md;
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.document-item.drop-target {
+  @apply border-2 border-dashed border-blue-400;
+}
+
+.document-item .actions {
+  @apply opacity-0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.document-item:hover .actions {
+  @apply opacity-100;
+}
+
+.document-item .drag-handle {
+  @apply w-4 h-4 text-gray-400 cursor-grab;
+}
+
+.document-item:active .drag-handle {
+  @apply cursor-grabbing;
+}
+
+.document-type {
+  @apply text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-700 inline-flex items-center;
+}
+
+.document-type.pdf {
+  @apply bg-red-100 text-red-700;
+}
+
+.document-type.docx {
+  @apply bg-blue-100 text-blue-700;
+}
+
+.document-type.txt {
+  @apply bg-gray-100 text-gray-700;
+}
+
+/* Favorite indicator */
+.favorite-indicator {
+  @apply w-2 h-2 rounded-full absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1;
+}
+
+.favorite-indicator.active {
+  @apply bg-yellow-400;
+}
+
+.multi-pane-layout {
+  @apply flex-1 flex flex-col overflow-hidden;
+}
+
+.panes-container {
+  @apply flex flex-1 overflow-hidden;
+}
+
+.pane {
+  @apply flex-1 overflow-auto border border-gray-200 flex flex-col relative;
+}
+
+.pane-focused {
+  @apply border-blue-500 ring-2 ring-blue-100;
+}
+
+.empty-pane {
+  @apply flex justify-center items-center h-full text-gray-500 italic;
+}
+
+.document-viewer {
+  @apply flex flex-col h-full w-full;
+}
+
+.viewer-toolbar {
+  @apply flex p-2 border-b border-gray-200 items-center bg-white;
+}
+
+.viewer-toolbar .title {
+  @apply font-semibold truncate max-w-md;
+}
+
+.viewer-toolbar .spacer {
+  @apply flex-1;
+}
+
+.zoom-controls {
+  @apply flex items-center space-x-2;
+}
+
+.document-content {
+  @apply flex-1 overflow-auto flex justify-center items-start p-4 bg-gray-100;
+}
+
+.pdf-renderer {
+  @apply flex flex-col items-center bg-white shadow-document;
+}
+
+.pdf-page {
+  @apply mb-4;
+}
+
+.page-navigator {
+  @apply flex justify-center items-center p-2 border-t border-gray-200 space-x-2 bg-white;
+}
+
+.page-input-container {
+  @apply flex items-center;
+}
+
+.page-input-container input {
+  @apply w-12 text-center mx-2 p-1 border border-gray-300 rounded;
+}
+
+/* Utility classes - using direct CSS instead of @apply to avoid circular dependencies */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* No need to redefine .hidden as Tailwind already provides it */
+
+/* Button component styling */
+.btn {
+  @apply px-3 py-1.5 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+  @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+}
+
+.file-uploader {
+  @apply mb-4;
+}
+
+.resize-handle {
+  @apply w-1 bg-gray-200 hover:bg-blue-300 cursor-col-resize relative z-10;
+}
+
+/* Drag and drop styles */
+.file-drop-active {
+  @apply border-2 border-dashed border-blue-400 bg-blue-50;
+}
+
+.drop-zone-active {
+  @apply border-2 border-dashed border-blue-400;
+}
+
+.upload-overlay {
+  @apply absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white;
+}
+
+.document-item {
+  @apply cursor-grab;
+}
+
+.document-item:active {
+  @apply cursor-grabbing;
+} 
