@@ -1,0 +1,226 @@
+# Oak Multi-View Navigator
+**Description**: Core navigation system for handling multiple simultaneous views
+**Pattern**: `**/navigator/**/*.{ts,tsx,js,jsx}`
+
+## Core Functionality Requirements
+
+### View Management
+- Support simultaneous display of multiple views
+- Handle view state transitions and lifecycle
+- Maintain view history and navigation stack
+- Support view persistence and restoration
+- Enable view relationships (parent-child, dependent views)
+
+### Navigation Patterns
+- Allow programmatic navigation between views
+- Support declarative view routing
+- Handle deep linking and URL synchronization
+- Manage view parameters and context
+- Enable view preloading and lazy loading
+
+### View Layout & Rendering
+- Support flexible view layouts (split, tabs, stack)
+- Handle view resize and reflow
+- Manage view focus and activation
+- Support view minimization/maximization
+- Enable view dragging and rearrangement
+
+### State Management
+- Maintain consistent view state
+- Handle shared state between views
+- Support view-specific state isolation
+- Enable state persistence
+- Manage state restoration on navigation
+
+### Performance Requirements
+- Optimize view rendering and updates
+- Minimize memory usage for inactive views
+- Handle efficient view cleanup
+- Support view recycling
+- Implement view preloading strategy
+
+## Technical Guidelines
+
+### Component Architecture
+```typescript
+// Core Navigator Types
+interface ViewConfig {
+  id: string;
+  type: ViewType;
+  title: string;
+  component: React.ComponentType<ViewProps>;
+  params?: Record<string, unknown>;
+}
+
+interface NavigatorState {
+  activeViews: ViewConfig[];
+  viewHistory: string[];
+  layout: LayoutConfig;
+}
+
+// Example Component Structure
+const MultiViewNavigator: React.FC = () => {
+  // Core state management
+  // View lifecycle handling
+  // Layout management
+  // Navigation controls
+};
+
+const ViewContainer: React.FC<ViewConfig> = () => {
+  // Individual view rendering
+  // View state management
+  // Focus handling
+};
+
+const NavigatorControls: React.FC = () => {
+  // Navigation UI
+  // View management controls
+  // Layout controls
+};
+```
+
+### State Management Pattern
+```typescript
+// Use proper state management patterns
+interface NavigatorStore {
+  views: Map<string, ViewState>;
+  layout: LayoutState;
+  navigation: NavigationState;
+}
+
+// Actions should be clear and atomic
+type NavigatorAction = 
+  | { type: 'OPEN_VIEW'; payload: ViewConfig }
+  | { type: 'CLOSE_VIEW'; payload: string }
+  | { type: 'UPDATE_LAYOUT'; payload: LayoutConfig }
+  | { type: 'NAVIGATE'; payload: NavigationParams };
+```
+
+### Event Handling
+```typescript
+// Define clear event interfaces
+interface ViewEvent {
+  type: ViewEventType;
+  viewId: string;
+  payload?: unknown;
+}
+
+// Handle view lifecycle events
+const viewEventHandlers = {
+  onViewMount: (viewId: string) => void;
+  onViewUnmount: (viewId: string) => void;
+  onViewFocus: (viewId: string) => void;
+  onViewBlur: (viewId: string) => void;
+};
+```
+
+## Development Guidelines
+
+### Code Organization
+- Keep view-related code modular and isolated
+- Use clear file structure for navigator components
+- Maintain separation of concerns between navigation and view logic
+- Implement proper type definitions
+- Document component interfaces
+
+### Testing Requirements
+- Unit test navigation logic
+- Test view lifecycle management
+- Verify state management
+- Test layout calculations
+- Include integration tests for view interactions
+
+### Performance Considerations
+- Monitor and optimize render cycles
+- Implement proper memoization
+- Use efficient state updates
+- Profile memory usage
+- Track navigation performance
+
+### Error Handling
+```typescript
+// Implement proper error boundaries
+class ViewErrorBoundary extends React.Component<ViewErrorBoundaryProps> {
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    // Handle view errors
+    // Log error details
+    // Show error UI
+    // Cleanup view state if needed
+  }
+}
+
+// Define error recovery strategies
+interface ErrorRecoveryStrategy {
+  type: ErrorType;
+  action: RecoveryAction;
+  fallback?: React.ComponentType;
+}
+```
+
+## Documentation Requirements
+
+### Component Documentation
+- Document view lifecycle
+- Explain navigation patterns
+- Detail state management approach
+- Include usage examples
+- Document error handling
+
+### API Documentation
+```typescript
+/**
+ * Opens a new view in the navigator
+ * @param config - View configuration
+ * @param options - Navigation options
+ * @returns Promise resolving to the view instance
+ */
+function openView(config: ViewConfig, options?: NavigationOptions): Promise<View>;
+
+/**
+ * Updates view layout configuration
+ * @param layout - New layout configuration
+ * @returns Promise resolving when layout is applied
+ */
+function updateLayout(layout: LayoutConfig): Promise<void>;
+```
+
+### Usage Examples
+```typescript
+// Example: Opening a new view
+navigator.openView({
+  id: 'unique-view-id',
+  type: ViewType.Document,
+  title: 'Document View',
+  component: DocumentViewer,
+  params: {
+    documentId: '123',
+    mode: 'edit'
+  }
+});
+
+// Example: Updating layout
+navigator.updateLayout({
+  type: 'split',
+  direction: 'horizontal',
+  ratio: 0.5,
+  views: ['view-1', 'view-2']
+});
+```
+
+## Quality Assurance
+
+### Review Checklist
+- Verify view lifecycle handling
+- Check navigation state management
+- Test layout responsiveness
+- Validate error handling
+- Review performance metrics
+- Check accessibility compliance
+- Verify documentation completeness
+
+### Performance Metrics
+- Time to first view render
+- Navigation response time
+- Memory usage per view
+- Layout calculation time
+- State update performance

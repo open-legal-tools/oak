@@ -1,0 +1,27 @@
+Description: Documentation standards
+Pattern: **/*.{md,mdx}
+When writing documentation:
+
+1. Structure:
+   - Use clear hierarchical organization
+   - Include table of contents
+   - Add proper section links
+   - Maintain consistent formatting
+
+2. Content Guidelines:
+   - Write clear, concise explanations
+   - Include code examples
+   - Add usage guidelines
+   - Document edge cases
+
+3. Technical Documentation:
+   - Include setup instructions
+   - Document dependencies
+   - Add troubleshooting guides
+   - Maintain API documentation
+
+4. Maintenance:
+   - Keep docs up to date
+   - Version documentation
+   - Review regularly
+   - Update examples

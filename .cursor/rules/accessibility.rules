@@ -1,0 +1,27 @@
+Description: Accessibility requirements and standards
+Pattern: **/*.{jsx,tsx}
+When implementing UI components:
+
+1. WCAG Compliance:
+   - Follow WCAG 2.1 Level AA standards
+   - Implement proper ARIA labels
+   - Ensure keyboard navigation
+   - Maintain sufficient color contrast
+
+2. Semantic HTML:
+   - Use appropriate HTML elements
+   - Implement proper heading hierarchy
+   - Include alt text for images
+   - Structure content logically
+
+3. Interactive Elements:
+   - Ensure focus indicators
+   - Implement proper tab order
+   - Add skip navigation
+   - Handle screen reader announcements
+
+4. Forms and Inputs:
+   - Label all form controls
+   - Provide error messages
+   - Implement form validation
+   - Add helper text when needed

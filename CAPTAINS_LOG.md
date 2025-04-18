@@ -1,4 +1,8 @@
-# Captain's Log: Oak
+# Captain's Log: Gavel
+
+## 2025-04-18: Two Steps Back, Half Step Forward
+
+Two steps backward? A half step forward? Somewhere in between? Continuing to tinker as time allows, with life milestones in between. Dug into the PDF system and modularized to avoid breaking things amid development (D'oh!). Learning a lot. With this commit, there are fewer features but a stronger heart, with a fully offline rendering system using PDF.js. Lots to do from here; excited to do it!
 
 ## 2025-03-15: The Birth of Oak and Gavel
 
