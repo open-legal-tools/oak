@@ -56,10 +56,67 @@ const PDFViewer = ({
         
         // Handle different URL types
         let documentUrl = pdfUrl;
-        if (pdfUrl.startsWith('/') && !pdfUrl.startsWith('//')) {
-          // For absolute file paths in Electron
-          documentUrl = `file://${pdfUrl}`;
-          console.log('Converted to file URL:', documentUrl);
+        if (pdfUrl.startsWith('file://') || pdfUrl.startsWith('/')) {
+          // For local files in Electron, use the readPdfFile API
+          if (window.electron?.readPdfFile) {
+            try {
+              const filePath = pdfUrl.replace('file://', '');
+              console.log('Reading PDF file from path:', filePath);
+              const pdfData = await window.electron.readPdfFile(filePath);
+              
+              // Debug the PDF data
+              console.log('PDF data type:', typeof pdfData);
+              console.log('PDF data length:', pdfData?.length);
+              console.log('First few bytes:', pdfData?.slice(0, 20));
+              
+              // Create a Uint8Array from the data
+              const uint8Array = new Uint8Array(pdfData);
+              
+              // Load the document directly with the data
+              const loadingTask = pdfjs.getDocument({
+                data: uint8Array,
+                cMapUrl: PDF_CONFIG.rendering.cMapUrl,
+                cMapPacked: PDF_CONFIG.rendering.cMapPacked,
+              });
+              
+              loadingTask.onProgress = (progress) => {
+                if (progress.total > 0) {
+                  console.log(`Loading progress: ${Math.round(progress.loaded / progress.total * 100)}%`);
+                }
+              };
+              
+              const doc = await loadingTask.promise;
+              
+              if (!isActive) return;
+              
+              console.log('PDF document loaded successfully with', doc.numPages, 'pages');
+              setPdfDoc(doc);
+              setNumPages(doc.numPages);
+              
+              if (onDocumentLoad) {
+                onDocumentLoad(doc.numPages);
+              }
+              
+              return; // Exit early since we've already loaded the document
+            } catch (error) {
+              console.error('Error reading PDF file through Electron:', error);
+              throw new Error(`Failed to read PDF file: ${error.message}`);
+            }
+          } else {
+            // Fallback for non-Electron environment
+            try {
+              const response = await fetch(pdfUrl);
+              if (!response.ok) {
+                throw new Error(`Failed to fetch file: ${response.status} ${response.statusText}`);
+              }
+              const blob = await response.blob();
+              documentUrl = URL.createObjectURL(blob);
+              console.log('Created blob URL for local file:', documentUrl);
+            } catch (error) {
+              console.error('Error loading local file:', error);
+              throw new Error(`Failed to load local file: ${error.message}`);
+            }
+          }
         } else if (pdfUrl.startsWith('./')) {
           // For relative paths
           const base = window.location.origin;
