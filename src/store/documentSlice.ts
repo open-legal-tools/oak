@@ -41,7 +41,9 @@ const initialState: DocumentState = {
   documents: sampleDocuments,
   loading: false,
   error: null,
-  currentDocument: sampleDocuments.length > 0 ? sampleDocuments[0].id : null
+  currentDocument: sampleDocuments.length > 0 ? sampleDocuments[0].id : null,
+  activePage: null,
+  activeDocumentId: null
 };
 
 const documentSlice = createSlice({
@@ -104,6 +106,12 @@ const documentSlice = createSlice({
           ...changes
         };
       }
+    },
+    setActivePage: (state, action: PayloadAction<number>) => {
+      state.activePage = action.payload;
+    },
+    setActiveDocument: (state, action: PayloadAction<string>) => {
+      state.activeDocumentId = action.payload;
     }
   }
 });
@@ -116,7 +124,9 @@ export const {
   reorderDocuments,
   clearSampleDocuments,
   restoreSampleDocuments,
-  updateDocument
+  updateDocument,
+  setActivePage,
+  setActiveDocument
 } = documentSlice.actions;
 
 // Export these for TestDocumentLoader

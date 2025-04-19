@@ -1,15 +1,23 @@
 // components/Layout/MultiPaneLayout.tsx
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Pane from './Pane';
 import ResizeHandle from './ResizeHandle';
 import { useDispatch, useSelector } from 'react-redux';
-import { assignDocumentToPane } from '../../store/workspaceSlice';
+import { assignDocumentToPane, setActivePane, swapPaneDocuments } from '../../store/workspaceSlice';
 import { RootState } from '../../store';
 
 const MultiPaneLayout: React.FC = () => {
   const dispatch = useDispatch();
   const { panes, activePaneId } = useSelector((state: RootState) => state.workspace);
   const [focusedPaneId, setFocusedPaneId] = useState<string | null>(null);
+  const layoutRef = useRef<HTMLDivElement>(null);
+  
+  // Set initial active pane
+  useEffect(() => {
+    if (panes.length > 0 && !activePaneId) {
+      dispatch(setActivePane(panes[0].id));
+    }
+  }, [panes, activePaneId, dispatch]);
   
   // Handler for document dropping
   const handleDocumentDrop = (documentId: string, paneId: string) => {
@@ -24,24 +32,47 @@ const MultiPaneLayout: React.FC = () => {
           // Focus left pane if it exists
           if (panes.findIndex(p => p.id === focusedPaneId) > 0) {
             const index = panes.findIndex(p => p.id === focusedPaneId);
-            setFocusedPaneId(panes[index - 1].id);
+            const newPaneId = panes[index - 1].id;
+            setFocusedPaneId(newPaneId);
+            dispatch(setActivePane(newPaneId));
           }
           break;
         case 'ArrowRight':
           // Focus right pane if it exists
           if (panes.findIndex(p => p.id === focusedPaneId) < panes.length - 1) {
             const index = panes.findIndex(p => p.id === focusedPaneId);
-            setFocusedPaneId(panes[index + 1].id);
+            const newPaneId = panes[index + 1].id;
+            setFocusedPaneId(newPaneId);
+            dispatch(setActivePane(newPaneId));
           }
           break;
         case '1': 
           setFocusedPaneId(panes[0].id);
+          dispatch(setActivePane(panes[0].id));
           break;
         case '2':
-          if (panes.length > 1) setFocusedPaneId(panes[1].id);
+          if (panes.length > 1) {
+            setFocusedPaneId(panes[1].id);
+            dispatch(setActivePane(panes[1].id));
+          }
           break;
         case '3':
-          if (panes.length > 2) setFocusedPaneId(panes[2].id);
+          if (panes.length > 2) {
+            setFocusedPaneId(panes[2].id);
+            dispatch(setActivePane(panes[2].id));
+          }
+          break;
+        case 's':
+          // Swap documents between focused pane and next pane
+          if (focusedPaneId && panes.length > 1) {
+            const index = panes.findIndex(p => p.id === focusedPaneId);
+            if (index < panes.length - 1) {
+              dispatch(swapPaneDocuments({
+                sourcePane: focusedPaneId,
+                targetPane: panes[index + 1].id
+              }));
+            }
+          }
           break;
       }
       
@@ -55,6 +86,7 @@ const MultiPaneLayout: React.FC = () => {
   
   return (
     <div 
+      ref={layoutRef}
       className="multi-pane-layout" 
       onKeyDown={handleKeyDown}
       role="region"
@@ -75,7 +107,11 @@ const MultiPaneLayout: React.FC = () => {
               id={pane.id}
               onDocumentDrop={handleDocumentDrop}
               isFocused={focusedPaneId === pane.id}
-              onFocus={() => setFocusedPaneId(pane.id)}
+              isActive={activePaneId === pane.id}
+              onFocus={() => {
+                setFocusedPaneId(pane.id);
+                dispatch(setActivePane(pane.id));
+              }}
             >
               {/* Pane content will go here based on assigned document */}
               {/* We'll implement the document viewer later */}

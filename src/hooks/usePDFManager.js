@@ -96,55 +96,54 @@ const usePDFManager = (pdfPath) => {
    * Page Rendering
    */
   const renderSinglePage = useCallback(async (pageNum) => {
-    if (!pdfDoc || pageNum < 1 || pageNum > numPages || renderedPageCache.current.has(pageNum)) {
-      return;
+    console.log('Attempting to render page:', pageNum);
+    if (!pdfDoc || pageNum < 1 || pageNum > numPages) {
+      console.log('Cannot render page:', { hasPdfDoc: !!pdfDoc, pageNum, numPages });
+      return false;
     }
 
     try {
+      console.log('Getting page:', pageNum);
       const page = await pdfDoc.getPage(pageNum);
+      const viewport = page.getViewport({ scale: renderScale });
+      console.log('Page viewport:', { width: viewport.width, height: viewport.height });
       
-      // Calculate scale
-      const originalViewport = page.getViewport({ scale: 1.0 });
-      const targetWidth = Math.min(800, window.innerWidth - 60);
-      const scaleFactor = targetWidth / originalViewport.width;
-      const finalScale = scale * scaleFactor;
-
-      const viewport = page.getViewport({ scale: finalScale });
       const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d', { alpha: false });
-
+      const context = canvas.getContext('2d');
+      
       canvas.width = viewport.width;
       canvas.height = viewport.height;
-
-      // Fill background
+      
+      // Fill with white background
       context.fillStyle = 'rgb(255, 255, 255)';
       context.fillRect(0, 0, canvas.width, canvas.height);
-
-      const renderTask = page.render({
+      
+      console.log('Rendering page:', pageNum);
+      await page.render({
         canvasContext: context,
-        viewport: viewport,
-        background: 'rgb(255, 255, 255)'
-      });
-
-      await renderTask.promise;
-
-      const imageData = canvas.toDataURL('image/jpeg', 0.92);
-      renderedPageCache.current.add(pageNum);
-
+        viewport: viewport
+      }).promise;
+      
+      console.log('Page rendered successfully:', pageNum);
       setRenderedPage(pageNum, {
-        data: imageData,
-        width: canvas.width,
-        height: canvas.height
+        canvas: canvas,
+        viewport: viewport
       });
-
+      
       return true;
     } catch (err) {
       console.error(`Error rendering page ${pageNum}:`, err);
       return false;
     }
-  }, [pdfDoc, numPages, scale, setRenderedPage]);
+  }, [pdfDoc, numPages, renderScale, setRenderedPage]);
 
   const processQueue = useCallback(async () => {
+    console.log('Processing queue:', {
+      isRendering: isRendering.current,
+      hasPdfDoc: !!pdfDoc,
+      queueLength: renderingQueue.current.length
+    });
+
     if (isRendering.current || !pdfDoc || renderingQueue.current.length === 0) {
       return;
     }
@@ -153,12 +152,16 @@ const usePDFManager = (pdfPath) => {
 
     try {
       const pageNum = renderingQueue.current.shift();
+      console.log('Processing page from queue:', pageNum);
       await renderSinglePage(pageNum);
     } finally {
       isRendering.current = false;
 
       if (renderingQueue.current.length > 0) {
-        requestAnimationFrame(processQueue);
+        console.log('Queue not empty, continuing...');
+        processQueue();
+      } else {
+        console.log('Queue empty, rendering complete');
       }
     }
   }, [pdfDoc, renderSinglePage]);
@@ -166,29 +169,23 @@ const usePDFManager = (pdfPath) => {
   /**
    * Initialization and Page Management
    */
-  const initializeRendering = useCallback((containerRef) => {
-    if (hasInitializedRef.current || !pdfDoc || numPages === 0 || isZooming) {
-      return;
+  const initializeRendering = useCallback((container) => {
+    if (!container || !pdfDoc) return;
+    
+    // Clear any existing rendering queue
+    renderingQueue.current = [];
+    isRendering.current = false;
+    
+    // Queue all pages for rendering
+    for (let i = 1; i <= numPages; i++) {
+      renderingQueue.current.push(i);
     }
-
-    hasInitializedRef.current = true;
-
-    if (scale !== renderScale) {
-      clearRenderedPages();
-      renderingQueue.current = [];
-      renderedPageCache.current.clear();
-      setRenderScale(scale);
+    
+    // Start rendering process
+    if (renderingQueue.current.length > 0) {
+      processQueue();
     }
-
-    // Queue initial pages
-    for (let i = 1; i <= Math.min(3, numPages); i++) {
-      if (!renderedPageCache.current.has(i) && !renderingQueue.current.includes(i)) {
-        renderingQueue.current.push(i);
-      }
-    }
-
-    requestAnimationFrame(processQueue);
-  }, [pdfDoc, numPages, processQueue, scale, renderScale, clearRenderedPages, isZooming]);
+  }, [pdfDoc, numPages, processQueue]);
 
   const setPageRef = useCallback((pageNum, ref) => {
     if (!ref || !pageNum) return;
@@ -208,22 +205,35 @@ const usePDFManager = (pdfPath) => {
    * Zoom Handling
    */
   const handleZoomChange = useCallback((newScale) => {
-    if (isZooming) return;
-
-    setIsZooming(true);
+    console.log('Zoom change requested:', newScale);
+    
+    // Calculate the new scale
+    const currentScale = scale;
+    let finalScale = newScale;
+    
+    if (typeof newScale === 'function') {
+      finalScale = newScale(currentScale);
+    }
+    
+    // Ensure scale is within bounds
+    finalScale = Math.min(Math.max(finalScale, 0.5), 3.0);
+    
+    console.log('Setting render scale to:', finalScale);
+    setRenderScale(finalScale);
+    
+    // Clear existing rendered pages
+    clearRenderedPages();
     renderingQueue.current = [];
-
-    requestAnimationFrame(() => {
-      hasInitializedRef.current = false;
-      renderedPageCache.current.clear();
-      clearRenderedPages();
-
-      requestAnimationFrame(() => {
-        setRenderScale(newScale);
-        setIsZooming(false);
-      });
-    });
-  }, [clearRenderedPages, isZooming]);
+    
+    // Start rendering immediately
+    const container = containerRef.current;
+    if (container) {
+      console.log('Starting re-render after zoom');
+      initializeRendering(container);
+    } else {
+      console.log('No container available for re-render');
+    }
+  }, [scale, clearRenderedPages, initializeRendering]);
 
   // Load PDF when path changes
   useEffect(() => {

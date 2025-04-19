@@ -3,6 +3,8 @@ import * as pdfjs from 'pdfjs-dist/legacy/build/pdf';
 import { PDF_CONFIG } from './config';
 import PDFControls from './PDFControls';
 import './PDFViewer.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { setActivePage } from '../../store/documentSlice';
 
 // Configure PDF.js worker - this is a fallback if global worker is not set
 if (!pdfjs.GlobalWorkerOptions.workerSrc) {
@@ -27,6 +29,8 @@ interface PDFViewerProps {
   className?: string;
   onDocumentLoad?: (totalPages: number) => void;
   onError?: (error: Error) => void;
+  paneId?: string;
+  isActivePane?: boolean;
 }
 
 const PDFViewer = ({
@@ -34,10 +38,15 @@ const PDFViewer = ({
   pdfPath,
   className = '',
   onDocumentLoad,
-  onError
+  onError,
+  paneId,
+  isActivePane = false
 }: PDFViewerProps) => {
   // Use either url or pdfPath (for backward compatibility)
   const pdfUrl = url || pdfPath;
+  
+  const dispatch = useDispatch();
+  const activePage = useSelector((state: any) => state.document.activePage);
   
   // Type definitions for state
   const [pdfDoc, setPdfDoc] = useState<pdfjs.PDFDocumentProxy | null>(null);
@@ -45,8 +54,23 @@ const PDFViewer = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scale, setScale] = useState(1.0);
+  const [currentPage, setCurrentPage] = useState(1);
   
   const pdfContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Sync with global active page when not the active pane
+  useEffect(() => {
+    if (!isActivePane && activePage) {
+      setCurrentPage(activePage);
+    }
+  }, [activePage, isActivePane]);
+  
+  // Update global active page when this pane is active
+  useEffect(() => {
+    if (isActivePane) {
+      dispatch(setActivePage(currentPage));
+    }
+  }, [currentPage, isActivePane, dispatch]);
   
   // Load PDF document
   useEffect(() => {
@@ -218,6 +242,49 @@ const PDFViewer = ({
     setScale(newScale);
   }, []);
   
+  // Add page navigation handlers
+  const goToPage = useCallback((pageNumber: number) => {
+    if (pageNumber < 1 || pageNumber > numPages) return;
+    setCurrentPage(pageNumber);
+    if (pdfContainerRef.current) {
+      const pageElement = pdfContainerRef.current.querySelector(`[data-page-number="${pageNumber}"]`);
+      if (pageElement) {
+        pageElement.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, [numPages]);
+  
+  const goToNextPage = useCallback(() => {
+    goToPage(currentPage + 1);
+  }, [currentPage, goToPage]);
+  
+  const goToPrevPage = useCallback(() => {
+    goToPage(currentPage - 1);
+  }, [currentPage, goToPage]);
+  
+  // Add keyboard navigation
+  useEffect(() => {
+    if (!isActivePane) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey) {
+        switch(e.key) {
+          case 'ArrowRight':
+            e.preventDefault();
+            goToNextPage();
+            break;
+          case 'ArrowLeft':
+            e.preventDefault();
+            goToPrevPage();
+            break;
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isActivePane, goToNextPage, goToPrevPage]);
+  
   if (error) {
     return (
       <div className={`pdf-viewer-root ${className}`}>
@@ -230,7 +297,13 @@ const PDFViewer = ({
   
   return (
     <div className={`pdf-viewer-root ${className}`}>
-      <PDFControls onZoomChange={handleZoomChange} />
+      <PDFControls 
+        onZoomChange={handleZoomChange}
+        currentPage={currentPage}
+        totalPages={numPages}
+        onPageChange={goToPage}
+        isActivePane={isActivePane}
+      />
       
       <div className="pdf-scroll-container">
         {isLoading ? (

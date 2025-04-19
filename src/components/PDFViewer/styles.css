@@ -23,24 +23,43 @@
   z-index: 10;
 }
 
-.pdf-controls button {
+.pdf-controls.active {
+  background-color: #f0f7ff;
+  border-bottom: 1px solid #2962ff;
+}
+
+.page-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-controls input {
+  width: 50px;
+  padding: 4px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.page-controls button {
   background-color: #f0f0f0;
   border: 1px solid #ccc;
   border-radius: 4px;
-  padding: 4px 12px;
+  padding: 4px 8px;
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.2s;
-  min-width: 40px;
+  min-width: 32px;
 }
 
-.pdf-controls button:hover {
+.page-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-controls button:hover:not(:disabled) {
   background-color: #e0e0e0;
-}
-
-.pdf-controls span {
-  margin: 0 8px;
-  font-size: 14px;
 }
 
 .zoom-controls {
@@ -216,32 +235,39 @@
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
-  .pdf-viewer-root {
+  .pdf-viewer {
     background: #1a1a1a;
+    color: #fff;
   }
   
-  .pdf-toolbar {
+  .pdf-controls {
     background: #2d2d2d;
     border-bottom-color: #404040;
   }
   
-  .zoom-button {
+  .pdf-controls.active {
+    background: #1a2d4d;
+    border-bottom-color: #2962ff;
+  }
+  
+  .page-controls input {
     background: #2d2d2d;
     border-color: #404040;
-    color: #ffffff;
+    color: #fff;
   }
   
-  .zoom-button:hover {
+  .page-controls button {
+    background: #2d2d2d;
+    border-color: #404040;
+    color: #fff;
+  }
+  
+  .page-controls button:hover:not(:disabled) {
     background: #404040;
-    border-color: #505050;
-  }
-  
-  .zoom-button:active {
-    background: #505050;
   }
   
   .zoom-level {
-    color: #cccccc;
+    color: #fff;
   }
   
   .pdf-container {
@@ -254,15 +280,17 @@
   
   .page-loading {
     background: #2d2d2d;
-    color: #cccccc;
+    color: #ccc;
   }
   
-  .page-error {
+  .pdf-error {
     background: #2d1f1f;
+    border-color: #ff6b6b;
     color: #ff6b6b;
   }
   
-  .pdf-container-empty {
-    color: #cccccc;
+  .error-message {
+    background: #2d1f1f;
+    border-left-color: #ff6b6b;
   }
 } 

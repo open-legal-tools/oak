@@ -3,12 +3,13 @@ import React, { useRef, useEffect } from 'react';
 import { useDrop } from 'react-dnd';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import DocumentViewer from '../DocumentViewer';
+import PDFViewer from '../PDFViewer';
 
 interface PaneProps {
   id: string;
   onDocumentDrop: (docId: string, paneId: string) => void;
   isFocused: boolean;
+  isActive: boolean;
   onFocus: () => void;
   children?: React.ReactNode;
 }
@@ -17,6 +18,7 @@ const Pane: React.FC<PaneProps> = ({
   id, 
   onDocumentDrop,
   isFocused,
+  isActive,
   onFocus,
   children 
 }) => {
@@ -49,15 +51,19 @@ const Pane: React.FC<PaneProps> = ({
         drop(node);
         paneRef.current = node;
       }}
-      className={`pane ${isOver ? 'bg-blue-50' : ''} ${isFocused ? 'pane-focused' : ''}`}
+      className={`pane ${isOver ? 'bg-blue-50' : ''} ${isFocused ? 'pane-focused' : ''} ${isActive ? 'pane-active' : ''}`}
       tabIndex={0} // Make focusable
       onFocus={onFocus}
       role="region"
       aria-label={`Document pane ${id}`}
     >
       {documentId ? (
-        // If we have a document assigned, render the DocumentViewer
-        <DocumentViewer documentId={documentId} paneId={id} />
+        // If we have a document assigned, render the PDFViewer
+        <PDFViewer 
+          url={`/documents/${documentId}`}
+          paneId={id}
+          isActivePane={isActive}
+        />
       ) : (
         // Empty state
         <div className="empty-pane">
